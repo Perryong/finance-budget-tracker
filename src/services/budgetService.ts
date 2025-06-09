@@ -1,0 +1,83 @@
+
+import { supabase } from '@/integrations/supabase/client';
+
+export interface Budget {
+  id: string;
+  user_id: string;
+  category_name: string;
+  amount: number;
+  month: number;
+  year: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const budgetService = {
+  async getBudgets(month: number, year: number): Promise<Record<string, number>> {
+    try {
+      const { data, error } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('month', month)
+        .eq('year', year);
+      
+      if (error) throw error;
+      
+      const budgetMap: Record<string, number> = {};
+      data?.forEach(budget => {
+        budgetMap[budget.category_name] = budget.amount;
+      });
+      
+      return budgetMap;
+    } catch (error) {
+      console.error('Error fetching budgets:', error);
+      return {};
+    }
+  },
+
+  async setBudget(categoryName: string, amount: number, month: number, year: number): Promise<void> {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('budgets')
+        .upsert({
+          user_id: userData.user.id,
+          category_name: categoryName,
+          amount: amount,
+          month: month,
+          year: year
+        });
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error setting budget:', error);
+      throw error;
+    }
+  },
+
+  async setBulkBudgets(budgets: Record<string, number>, month: number, year: number): Promise<void> {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('User not authenticated');
+
+      const budgetEntries = Object.entries(budgets).map(([categoryName, amount]) => ({
+        user_id: userData.user.id,
+        category_name: categoryName,
+        amount: amount,
+        month: month,
+        year: year
+      }));
+
+      const { error } = await supabase
+        .from('budgets')
+        .upsert(budgetEntries);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error setting bulk budgets:', error);
+      throw error;
+    }
+  }
+};
