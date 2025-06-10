@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -82,7 +83,7 @@ export const Transactions = () => {
               <Card key={date}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex justify-between items-center">
-                    <span>{format(parseISO(date), 'EEEE, MMMM d, yyyy')}</span>
+                    <span>{format(parseISO(date), 'EEE, MMMM d, yyyy')}</span>
                     <span className={`font-bold ${dayTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       ${Math.abs(dayTotal).toFixed(2)}
                     </span>
