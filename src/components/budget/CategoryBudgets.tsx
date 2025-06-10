@@ -62,7 +62,7 @@ export const CategoryBudgets: React.FC<CategoryBudgetsProps> = ({
                     <span className="font-medium">{category.name}</span>
                   </div>
                   <div className="text-sm text-gray-600">
-                    S${spent.toFixed(2)} / S${budget.toFixed(2)}
+                    SGD {spent.toFixed(2)} / SGD {budget.toFixed(2)}
                   </div>
                 </div>
                 
@@ -81,7 +81,7 @@ export const CategoryBudgets: React.FC<CategoryBudgetsProps> = ({
                         value={budget}
                         onSave={(value) => handleBudgetChange(category.name, value)}
                         showResetButton={false}
-                        prefix="S$"
+                        prefix="SGD "
                       />
                     </div>
                   </div>
