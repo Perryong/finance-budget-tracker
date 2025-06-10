@@ -87,7 +87,7 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
                   <span>{category.name}</span>
                 </Label>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">S$</span>
+                  <span className="text-sm text-gray-500">SGD</span>
                   <Input
                     type="number"
                     placeholder="0.00"
@@ -116,7 +116,7 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
                   Total Monthly Budget:
                 </span>
                 <span className="text-lg font-bold text-blue-800">
-                  S${totalBudget.toFixed(2)}
+                  SGD {totalBudget.toFixed(2)}
                 </span>
               </div>
             </div>
