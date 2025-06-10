@@ -48,6 +48,8 @@ export const budgetService = {
           amount: amount,
           month: month,
           year: year
+        }, {
+          onConflict: 'user_id,category_name,month,year'
         });
       
       if (error) throw error;
@@ -62,19 +64,27 @@ export const budgetService = {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('User not authenticated');
 
-      const budgetEntries = Object.entries(budgets).map(([categoryName, amount]) => ({
-        user_id: userData.user.id,
-        category_name: categoryName,
-        amount: amount,
-        month: month,
-        year: year
-      }));
-
-      const { error } = await supabase
-        .from('budgets')
-        .upsert(budgetEntries);
-      
-      if (error) throw error;
+      // Process each budget entry individually to handle upserts properly
+      for (const [categoryName, amount] of Object.entries(budgets)) {
+        if (amount > 0) { // Only save budgets with positive amounts
+          const { error } = await supabase
+            .from('budgets')
+            .upsert({
+              user_id: userData.user.id,
+              category_name: categoryName,
+              amount: amount,
+              month: month,
+              year: year
+            }, {
+              onConflict: 'user_id,category_name,month,year'
+            });
+          
+          if (error) {
+            console.error(`Error setting budget for ${categoryName}:`, error);
+            throw error;
+          }
+        }
+      }
     } catch (error) {
       console.error('Error setting bulk budgets:', error);
       throw error;
