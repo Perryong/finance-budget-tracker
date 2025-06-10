@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Plus, ChevronDown } from 'lucide-react';
 import { useSupabaseStore } from '@/store/supabaseStore';
 
 interface EnhancedBudgetCategoriesProps {
@@ -23,6 +24,7 @@ export const EnhancedBudgetCategories: React.FC<EnhancedBudgetCategoriesProps> =
   const { addCategory } = useSupabaseStore();
   const [newCategoryName, setNewCategoryName] = React.useState('');
   const [isAddingCategory, setIsAddingCategory] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(true);
 
   const expenseCategories = categories.filter(cat => cat.type === 'expense');
   
@@ -73,30 +75,7 @@ export const EnhancedBudgetCategories: React.FC<EnhancedBudgetCategoriesProps> =
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {expenseCategories.map((category) => (
-            <div key={category.name} className="grid grid-cols-2 gap-4 items-center">
-              <div className="flex items-center space-x-3">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: category.color }}
-                />
-                <Label className="font-medium">{category.name}</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">S$</span>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={budgets[category.name] || ''}
-                  onChange={(e) => handleBudgetChange(category.name, e.target.value)}
-                  min="0"
-                  step="0.01"
-                  className="text-right"
-                />
-              </div>
-            </div>
-          ))}
-          
+          {/* Add Category Form - Now at the top */}
           {isAddingCategory && (
             <div className="grid grid-cols-2 gap-4 items-center p-3 bg-gray-50 rounded-lg">
               <Input
@@ -118,12 +97,45 @@ export const EnhancedBudgetCategories: React.FC<EnhancedBudgetCategoriesProps> =
               </div>
             </div>
           )}
+
+          {/* Collapsible Budget Categories */}
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-left font-medium hover:underline">
+              <span>Budget Categories ({expenseCategories.length})</span>
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4">
+              {expenseCategories.map((category) => (
+                <div key={category.name} className="grid grid-cols-2 gap-4 items-center">
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <Label className="font-medium">{category.name}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-500">SGD</span>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={budgets[category.name] || ''}
+                      onChange={(e) => handleBudgetChange(category.name, e.target.value)}
+                      min="0"
+                      step="0.01"
+                      className="text-right"
+                    />
+                  </div>
+                </div>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
           
           <div className="mt-6 pt-4 border-t space-y-3">
             <div className="flex justify-between items-center">
               <span className="font-semibold text-lg">Total Allocated</span>
               <span className="font-bold text-xl text-blue-600">
-                S${totalAllocated.toFixed(2)}
+                SGD {totalAllocated.toFixed(2)}
               </span>
             </div>
             
