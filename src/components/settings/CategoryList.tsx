@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,14 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Edit, Trash2, Check, X, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, Check, X, ChevronDown, ChevronUp, RefreshCw, ChevronRight, Folder, FolderOpen } from 'lucide-react';
 import { useCategoryStore } from '@/store/categoryStore';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export const CategoryList = () => {
   const { categories, updateCategory, deleteCategory, loading, refreshCategories } = useCategoryStore();
   const [editingCategory, setEditingCategory] = React.useState<string | null>(null);
   const [editForm, setEditForm] = React.useState({ name: '', color: '', type: 'expense' as 'income' | 'expense' });
-  const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(new Set(['housing', 'food', 'regular']));
+  const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(new Set()); // Start with all collapsed
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const handleDeleteCategory = async (id: string, categoryName: string) => {
@@ -57,6 +57,14 @@ export const CategoryList = () => {
     setExpandedGroups(newExpanded);
   };
 
+  const expandAll = () => {
+    setExpandedGroups(new Set(Object.keys({...expenseGroups, ...incomeGroups})));
+  };
+
+  const collapseAll = () => {
+    setExpandedGroups(new Set());
+  };
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -71,77 +79,92 @@ export const CategoryList = () => {
     housing: {
       title: 'Housing & Utilities',
       keywords: ['rent', 'mortgage', 'property', 'home', 'utilities', 'internet', 'cable'],
-      color: 'bg-red-600'
+      color: 'bg-red-600',
+      icon: '🏠'
     },
     transportation: {
       title: 'Transportation',
       keywords: ['fuel', 'gas', 'transport', 'car', 'parking', 'uber', 'taxi', 'public'],
-      color: 'bg-green-600'
+      color: 'bg-green-600',
+      icon: '🚗'
     },
     food: {
       title: 'Food & Dining',
       keywords: ['groceries', 'restaurant', 'food', 'coffee', 'alcohol', 'delivery', 'fast food'],
-      color: 'bg-orange-600'
+      color: 'bg-orange-600',
+      icon: '🍽️'
     },
     health: {
       title: 'Health & Fitness',
       keywords: ['healthcare', 'health', 'medical', 'dental', 'vision', 'gym', 'fitness', 'personal care', 'medications'],
-      color: 'bg-cyan-600'
+      color: 'bg-cyan-600',
+      icon: '🏥'
     },
     subscriptions: {
       title: 'Subscriptions & Digital',
       keywords: ['subscription', 'streaming', 'software', 'app', 'music', 'cloud', 'gaming'],
-      color: 'bg-blue-600'
+      color: 'bg-blue-600',
+      icon: '📱'
     },
     shopping: {
       title: 'Shopping & Personal',
       keywords: ['clothing', 'electronics', 'books', 'hobbies', 'gifts', 'beauty', 'cosmetics'],
-      color: 'bg-purple-600'
+      color: 'bg-purple-600',
+      icon: '🛍️'
     },
     financial: {
       title: 'Financial & Fees',
       keywords: ['bank', 'investment', 'credit', 'atm', 'late', 'loan', 'fees'],
-      color: 'bg-indigo-600'
+      color: 'bg-indigo-600',
+      icon: '💳'
     },
     family: {
       title: 'Family & Children',
       keywords: ['childcare', 'school', 'education', 'baby', 'kids', 'tutoring', 'supplies'],
-      color: 'bg-pink-600'
+      color: 'bg-pink-600',
+      icon: '👨‍👩‍👧‍👦'
     },
     entertainment: {
       title: 'Entertainment & Lifestyle',
       keywords: ['movies', 'events', 'concerts', 'sports', 'bars', 'nightlife', 'gaming', 'magazines'],
-      color: 'bg-rose-600'
+      color: 'bg-rose-600',
+      icon: '🎭'
     },
     travel: {
       title: 'Travel & Vacation',
       keywords: ['vacation', 'hotels', 'lodging', 'flights', 'travel', 'rental', 'insurance'],
-      color: 'bg-emerald-600'
+      color: 'bg-emerald-600',
+      icon: '✈️'
     },
     pets: {
       title: 'Pets',
       keywords: ['pet', 'vet', 'grooming'],
-      color: 'bg-amber-600'
+      color: 'bg-amber-600',
+      icon: '🐕'
     },
     taxes: {
       title: 'Taxes & Government',
       keywords: ['tax', 'government', 'vehicle registration', 'licenses'],
-      color: 'bg-stone-600'
+      color: 'bg-stone-600',
+      icon: '🏛️'
     },
     savings: {
       title: 'Savings & Investments',
       keywords: ['emergency fund', 'retirement', 'investment contributions', 'savings goals'],
-      color: 'bg-emerald-700'
+      color: 'bg-emerald-700',
+      icon: '💰'
     },
     business: {
       title: 'Business & Professional',
       keywords: ['office', 'professional', 'business', 'marketing', 'services', 'development'],
-      color: 'bg-slate-600'
+      color: 'bg-slate-600',
+      icon: '💼'
     },
     other: {
       title: 'Other & Miscellaneous',
       keywords: ['miscellaneous', 'other', 'cash', 'returns', 'refunds'],
-      color: 'bg-gray-600'
+      color: 'bg-gray-600',
+      icon: '📦'
     }
   };
 
@@ -149,32 +172,38 @@ export const CategoryList = () => {
     regular: {
       title: 'Regular Income',
       keywords: ['salary', 'wages', 'overtime', 'tips', 'commission', 'hourly'],
-      color: 'bg-green-600'
+      color: 'bg-green-600',
+      icon: '💵'
     },
     side: {
       title: 'Side Income',
       keywords: ['freelance', 'consulting', 'side hustle', 'gig', 'part-time'],
-      color: 'bg-lime-600'
+      color: 'bg-lime-600',
+      icon: '🏃‍♂️'
     },
     investment: {
       title: 'Investment Income',
       keywords: ['dividends', 'interest', 'capital gains', 'rental', 'returns'],
-      color: 'bg-blue-600'
+      color: 'bg-blue-600',
+      icon: '📈'
     },
     bonus: {
       title: 'Bonus & Rewards',
       keywords: ['bonus', 'tax refund', 'cash back', 'rewards', 'rebates'],
-      color: 'bg-yellow-600'
+      color: 'bg-yellow-600',
+      icon: '🎁'
     },
     benefits: {
       title: 'Government & Benefits',
       keywords: ['unemployment', 'social security', 'disability', 'child support', 'benefits'],
-      color: 'bg-teal-600'
+      color: 'bg-teal-600',
+      icon: '🏛️'
     },
     other: {
       title: 'Other Income',
       keywords: ['gifts received', 'inheritance', 'insurance', 'settlements', 'winnings', 'other income'],
-      color: 'bg-purple-600'
+      color: 'bg-purple-600',
+      icon: '🎯'
     }
   };
 
@@ -220,7 +249,7 @@ export const CategoryList = () => {
   const renderCategoryItem = (category: any) => (
     <div
       key={category.id}
-      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
     >
       {editingCategory === category.id ? (
         <div className="flex items-center space-x-3 flex-1">
@@ -307,25 +336,41 @@ export const CategoryList = () => {
     const isExpanded = expandedGroups.has(groupKey);
 
     return (
-      <div key={groupKey} className="space-y-3">
-        <div 
-          className={`flex items-center justify-between p-3 rounded-lg cursor-pointer hover:opacity-80 ${groupData.color} text-white`}
-          onClick={() => toggleGroup(groupKey)}
-        >
-          <div className="flex items-center space-x-2">
-            <h4 className="font-medium text-sm uppercase tracking-wide">
-              {groupData.title} ({items.length})
-            </h4>
+      <Collapsible key={groupKey} open={isExpanded} onOpenChange={() => toggleGroup(groupKey)}>
+        <CollapsibleTrigger className="w-full">
+          <div className={`flex items-center justify-between p-4 rounded-lg cursor-pointer hover:opacity-90 transition-opacity ${groupData.color} text-white`}>
+            <div className="flex items-center space-x-3">
+              <span className="text-lg">{groupData.icon}</span>
+              <div className="text-left">
+                <h4 className="font-medium text-sm uppercase tracking-wide">
+                  {groupData.title}
+                </h4>
+                <p className="text-xs text-white/80">
+                  {items.length} {items.length === 1 ? 'category' : 'categories'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              {isExpanded ? (
+                <FolderOpen className="h-4 w-4" />
+              ) : (
+                <Folder className="h-4 w-4" />
+              )}
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </div>
           </div>
-          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </div>
+        </CollapsibleTrigger>
         
-        {isExpanded && (
-          <div className="grid gap-2 max-h-96 overflow-y-auto pl-4">
+        <CollapsibleContent>
+          <div className="grid gap-2 max-h-96 overflow-y-auto mt-2 ml-4 pr-4">
             {items.map(renderCategoryItem)}
           </div>
-        )}
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     );
   };
 
@@ -347,14 +392,14 @@ export const CategoryList = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setExpandedGroups(new Set(Object.keys({...expenseGroups, ...incomeGroups})))}
+            onClick={expandAll}
           >
             Expand All
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setExpandedGroups(new Set())}
+            onClick={collapseAll}
           >
             Collapse All
           </Button>
@@ -364,24 +409,30 @@ export const CategoryList = () => {
       {/* Income Categories */}
       {incomeCategories.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-green-700 border-b pb-2">
-            Income Categories ({incomeCategories.length})
+          <h3 className="text-lg font-semibold text-green-700 border-b pb-2 flex items-center space-x-2">
+            <span>💰</span>
+            <span>Income Categories ({incomeCategories.length})</span>
           </h3>
-          {Object.entries(incomeGroups).map(([groupKey, groupData]) =>
-            renderCategoryGroup(groupKey, groupData, categorizedIncomes[groupKey] || [], 'income')
-          )}
+          <div className="space-y-3">
+            {Object.entries(incomeGroups).map(([groupKey, groupData]) =>
+              renderCategoryGroup(groupKey, groupData, categorizedIncomes[groupKey] || [], 'income')
+            )}
+          </div>
         </div>
       )}
       
       {/* Expense Categories */}
       {expenseCategories.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-red-700 border-b pb-2">
-            Expense Categories ({expenseCategories.length})
+          <h3 className="text-lg font-semibold text-red-700 border-b pb-2 flex items-center space-x-2">
+            <span>💸</span>
+            <span>Expense Categories ({expenseCategories.length})</span>
           </h3>
-          {Object.entries(expenseGroups).map(([groupKey, groupData]) =>
-            renderCategoryGroup(groupKey, groupData, categorizedExpenses[groupKey] || [], 'expense')
-          )}
+          <div className="space-y-3">
+            {Object.entries(expenseGroups).map(([groupKey, groupData]) =>
+              renderCategoryGroup(groupKey, groupData, categorizedExpenses[groupKey] || [], 'expense')
+            )}
+          </div>
         </div>
       )}
       
