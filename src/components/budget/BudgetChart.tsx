@@ -21,7 +21,7 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
     const actual = actualData[category.name] || 0;
     
     return {
-      category: category.name.length > 10 ? category.name.substring(0, 10) + '...' : category.name,
+      category: category.name,
       fullName: category.name,
       budget: budget,
       actual: actual,
@@ -55,7 +55,7 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
       </CardHeader>
       <CardContent>
         {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={400}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
@@ -63,11 +63,11 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
                 fontSize={12}
                 angle={-45}
                 textAnchor="end"
-                height={60}
+                height={100}
               />
               <YAxis />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
+              <Legend verticalAlign="top" align="right" />
               <Bar dataKey="budget" fill="#3b82f6" name="Budget" />
               <Bar dataKey="actual" fill="#ef4444" name="Actual" />
             </BarChart>
