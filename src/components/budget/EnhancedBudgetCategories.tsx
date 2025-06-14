@@ -24,12 +24,15 @@ export const EnhancedBudgetCategories: React.FC<EnhancedBudgetCategoriesProps> =
   const { addCategory } = useSupabaseStore();
   const [newCategoryName, setNewCategoryName] = React.useState('');
   const [isAddingCategory, setIsAddingCategory] = React.useState(false);
-  const [isOpen, setIsOpen] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const expenseCategories = categories.filter(cat => cat.type === 'expense');
   
   const totalAllocated = Object.values(budgets).reduce((sum, amount) => sum + amount, 0);
-
+  // Reset collapsed state when component mounts (when user switches to budget tab)
+  React.useEffect(() => {
+    setIsOpen(false);
+  }, []);
   const handleBudgetChange = (categoryName: string, value: string) => {
     const numValue = parseFloat(value) || 0;
     setBudgets(prev => ({
