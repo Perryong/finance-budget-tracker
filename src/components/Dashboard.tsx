@@ -191,11 +191,11 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden">
+        <Card>
           <CardHeader>
             <CardTitle>Transaction Calendar</CardTitle>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6">
+          <CardContent>
             <TransactionCalendar transactions={currentMonthTransactions} />
           </CardContent>
         </Card>
