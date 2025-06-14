@@ -1,4 +1,4 @@
-# 💰 Money Motion View - Personal Finance Tracker
+# 💰 Finance Budget Tracker - Personal Finance Tracker
 
 A comprehensive personal finance management application built with React, TypeScript, and Supabase. Track your income, expenses, budgets, and savings goals with an intuitive dashboard and powerful analytics.
 
@@ -251,4 +251,4 @@ For support, please open an issue in the GitHub repository or contact the develo
 
 ---
 
-**Money Motion View** - Take control of your financial future with intelligent tracking and insights! 💪💰
+**Finance Budget Tracker** - Take control of your financial future with intelligent tracking and insights! 💪💰
