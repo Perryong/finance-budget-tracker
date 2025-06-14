@@ -84,13 +84,6 @@ export const TransactionCalendar = ({ transactions }: TransactionCalendarProps) 
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 p-4 bg-background rounded-xl shadow-lg">
-      {/* Centered Calendar Title */}
-      <div className="text-center mb-4">
-        <h3 className="text-lg font-semibold">
-          {format(currentMonth, 'MMMM yyyy')}
-        </h3>
-      </div>
-
       {/* Calendar */}
       <div className="flex justify-center">
         <Calendar
