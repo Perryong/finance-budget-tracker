@@ -60,8 +60,13 @@ export const useSupabaseStore = () => {
     setSavingAmount: userSettingsStore.setSavingAmount,
     setCurrentSavings: userSettingsStore.setCurrentSavings,
 
-    // Combined loading and error states
-    loading: transactionStore.loading || categoryStore.loading || budgetStore.loading || recurringBudgetStore.loading || userSettingsStore.loading,
+    // Essential loading states (only for core data needed for page to function)
+    loading: transactionStore.loading || categoryStore.loading || budgetStore.loading || userSettingsStore.loading,
+    
+    // Separate loading states for optional features
+    recurringBudgetLoading: recurringBudgetStore.loading,
+    
+    // Combined error states
     error: transactionStore.error || categoryStore.error || budgetStore.error || recurringBudgetStore.error || userSettingsStore.error,
     initialized: userSettingsStore.initialized,
   };

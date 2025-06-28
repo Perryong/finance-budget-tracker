@@ -8,7 +8,7 @@ import { EnhancedBudgetCategories } from '@/components/budget/EnhancedBudgetCate
 import { BudgetChart } from '@/components/budget/BudgetChart';
 import { BudgetInsights } from '@/components/budget/BudgetInsights';
 import { BudgetModal } from '@/components/budget/BudgetModal';
-import { RecurringBudgetModal } from './budget/RecurringBudgetModel';
+import { RecurringBudgetModal } from './budget/RecurringBudgetModal';
 import { budgetService } from '@/services/budgetService';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Plus, Repeat, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -138,9 +138,10 @@ export const Budget = () => {
     setInitialized(false); // Reset to reload data for new month
   };
 
-  const isLoading = dataLoading || budgetsLoading;
+  // Only show main loading for essential data, not for recurring budgets
+  const isEssentialDataLoading = dataLoading || budgetsLoading;
 
-  if (isLoading) {
+  if (isEssentialDataLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg">Loading budget data...</div>

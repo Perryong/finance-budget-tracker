@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useSupabaseStore } from '@/store/supabaseStore';
 import { toast } from 'sonner';
-import { Repeat, Copy, Calendar } from 'lucide-react';
+import { Repeat, Copy, Calendar, Loader2 } from 'lucide-react';
 
 interface RecurringBudgetModalProps {
   isOpen: boolean;
@@ -32,11 +34,14 @@ export const RecurringBudgetModal: React.FC<RecurringBudgetModalProps> = ({
     recurringBudgets, 
     fetchRecurringBudgets, 
     setBulkRecurringBudgets,
-    generateMonthlyBudgets 
+    generateMonthlyBudgets,
+    recurringBudgetLoading
   } = useSupabaseStore();
   
   const [tempRecurringBudgets, setTempRecurringBudgets] = React.useState<Record<string, number>>({});
   const [autoGenerate, setAutoGenerate] = React.useState(true);
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
   
   const expenseCategories = categories.filter(cat => cat.type === 'expense');
 
@@ -60,12 +65,15 @@ export const RecurringBudgetModal: React.FC<RecurringBudgetModalProps> = ({
 
   const handleSaveRecurringBudgets = async () => {
     try {
+      setIsSaving(true);
       await setBulkRecurringBudgets(tempRecurringBudgets);
       toast.success('Recurring budget templates saved!');
       onClose();
     } catch (error) {
       console.error('Error saving recurring budgets:', error);
       toast.error('Failed to save recurring budgets');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -76,6 +84,7 @@ export const RecurringBudgetModal: React.FC<RecurringBudgetModalProps> = ({
 
   const handleGenerateFromRecurring = async () => {
     try {
+      setIsGenerating(true);
       await generateMonthlyBudgets(currentMonth, currentYear);
       // Refresh current budgets
       window.location.reload(); // Simple refresh for now
@@ -84,6 +93,8 @@ export const RecurringBudgetModal: React.FC<RecurringBudgetModalProps> = ({
     } catch (error) {
       console.error('Error generating monthly budgets:', error);
       toast.error('Failed to generate monthly budgets');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -111,8 +122,17 @@ export const RecurringBudgetModal: React.FC<RecurringBudgetModalProps> = ({
                 <Copy className="h-4 w-4 mr-2" />
                 Copy Current
               </Button>
-              <Button variant="outline" size="sm" onClick={handleGenerateFromRecurring}>
-                <Calendar className="h-4 w-4 mr-2" />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleGenerateFromRecurring}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Calendar className="h-4 w-4 mr-2" />
+                )}
                 Generate This Month
               </Button>
             </div>
@@ -123,29 +143,40 @@ export const RecurringBudgetModal: React.FC<RecurringBudgetModalProps> = ({
           <div className="space-y-4">
             <h3 className="font-semibold">Recurring Budget Categories</h3>
             
-            {expenseCategories.map((category) => (
-              <div key={category.name} className="grid grid-cols-2 gap-4 items-center">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <Label className="font-medium">{category.name}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">SGD</span>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={tempRecurringBudgets[category.name] || ''}
-                    onChange={(e) => handleRecurringBudgetChange(category.name, e.target.value)}
-                    min="0"
-                    step="0.01"
-                    className="text-right"
-                  />
-                </div>
+            {recurringBudgetLoading ? (
+              <div className="space-y-4">
+                {expenseCategories.slice(0, 5).map((_, index) => (
+                  <div key={index} className="grid grid-cols-2 gap-4 items-center">
+                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-10 w-24" />
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              expenseCategories.map((category) => (
+                <div key={category.name} className="grid grid-cols-2 gap-4 items-center">
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <Label className="font-medium">{category.name}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-500">SGD</span>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={tempRecurringBudgets[category.name] || ''}
+                      onChange={(e) => handleRecurringBudgetChange(category.name, e.target.value)}
+                      min="0"
+                      step="0.01"
+                      className="text-right"
+                    />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           <Separator />
@@ -178,8 +209,19 @@ export const RecurringBudgetModal: React.FC<RecurringBudgetModalProps> = ({
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSaveRecurringBudgets} className="bg-blue-600 hover:bg-blue-700">
-              Save Recurring Templates
+            <Button 
+              onClick={handleSaveRecurringBudgets} 
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Recurring Templates'
+              )}
             </Button>
           </div>
         </div>
