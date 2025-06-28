@@ -89,5 +89,36 @@ export const budgetService = {
       console.error('Error setting bulk budgets:', error);
       throw error;
     }
+  },
+
+  async copyFromPreviousMonth(currentMonth: number, currentYear: number): Promise<Record<string, number>> {
+    try {
+      // Calculate previous month/year
+      let prevMonth = currentMonth - 1;
+      let prevYear = currentYear;
+      
+      if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear = currentYear - 1;
+      }
+
+      const { data, error } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('month', prevMonth)
+        .eq('year', prevYear);
+      
+      if (error) throw error;
+      
+      const prevBudgets: Record<string, number> = {};
+      data?.forEach(budget => {
+        prevBudgets[budget.category_name] = budget.amount;
+      });
+      
+      return prevBudgets;
+    } catch (error) {
+      console.error('Error copying from previous month:', error);
+      return {};
+    }
   }
 };

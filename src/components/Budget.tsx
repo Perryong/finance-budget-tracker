@@ -8,21 +8,23 @@ import { EnhancedBudgetCategories } from '@/components/budget/EnhancedBudgetCate
 import { BudgetChart } from '@/components/budget/BudgetChart';
 import { BudgetInsights } from '@/components/budget/BudgetInsights';
 import { BudgetModal } from '@/components/budget/BudgetModal';
+import { RecurringBudgetModal } from './budget/RecurringBudgetModel';
 import { budgetService } from '@/services/budgetService';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
-import { Plus } from 'lucide-react';
+import { Plus, Repeat, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Budget = () => {
-  const { transactions, categories, loading: dataLoading } = useSupabaseStore();
+  const { transactions, categories, loading: dataLoading, generateMonthlyBudgets } = useSupabaseStore();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = React.useState(false);
   const [budgets, setBudgets] = React.useState<Record<string, number>>({});
   const [budgetsLoading, setBudgetsLoading] = React.useState(false);
   const [initialized, setInitialized] = React.useState(false);
+  const [currentDate, setCurrentDate] = React.useState(new Date());
   
-  const currentMonth = new Date();
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
   
   const currentMonthTransactions = transactions.filter((transaction) =>
     isWithinInterval(new Date(transaction.date), { start: monthStart, end: monthEnd })
@@ -43,20 +45,39 @@ export const Budget = () => {
       return acc;
     }, {} as Record<string, number>);
 
-  // Load budgets from Supabase only when main data is loaded
+  // Load budgets from Supabase when date changes
   React.useEffect(() => {
     const loadBudgets = async () => {
-      if (dataLoading || initialized) return;
+      if (dataLoading) return;
       
       setBudgetsLoading(true);
       try {
-        console.log('Loading budgets for', currentMonth.getMonth() + 1, currentMonth.getFullYear());
+        console.log('Loading budgets for', currentDate.getMonth() + 1, currentDate.getFullYear());
         const budgetData = await budgetService.getBudgets(
-          currentMonth.getMonth() + 1,
-          currentMonth.getFullYear()
+          currentDate.getMonth() + 1,
+          currentDate.getFullYear()
         );
         console.log('Loaded budget data:', budgetData);
         setBudgets(budgetData);
+        
+        // If no budgets exist for this month, try to generate from recurring templates
+        if (Object.keys(budgetData).length === 0) {
+          try {
+            await generateMonthlyBudgets(currentDate.getMonth() + 1, currentDate.getFullYear());
+            // Reload budgets after generation
+            const newBudgetData = await budgetService.getBudgets(
+              currentDate.getMonth() + 1,
+              currentDate.getFullYear()
+            );
+            if (Object.keys(newBudgetData).length > 0) {
+              setBudgets(newBudgetData);
+              toast.success('Budget generated from recurring templates!');
+            }
+          } catch (error) {
+            console.log('No recurring templates available or error generating:', error);
+          }
+        }
+        
         setInitialized(true);
       } catch (error) {
         console.error('Error loading budgets:', error);
@@ -69,20 +90,52 @@ export const Budget = () => {
     if (!dataLoading && transactions.length >= 0 && categories.length >= 0) {
       loadBudgets();
     }
-  }, [currentMonth, dataLoading, transactions, categories, initialized]);
+  }, [currentDate, dataLoading, transactions, categories, generateMonthlyBudgets]);
 
   const handleSaveBudgets = async () => {
     try {
       await budgetService.setBulkBudgets(
         budgets,
-        currentMonth.getMonth() + 1,
-        currentMonth.getFullYear()
+        currentDate.getMonth() + 1,
+        currentDate.getFullYear()
       );
       toast.success('Budget saved successfully!');
     } catch (error) {
       console.error('Error saving budgets:', error);
       toast.error('Failed to save budget');
     }
+  };
+
+  const handleCopyFromPreviousMonth = async () => {
+    try {
+      const prevBudgets = await budgetService.copyFromPreviousMonth(
+        currentDate.getMonth() + 1,
+        currentDate.getFullYear()
+      );
+      
+      if (Object.keys(prevBudgets).length > 0) {
+        setBudgets(prevBudgets);
+        toast.success('Budget copied from previous month!');
+      } else {
+        toast.info('No budget found for previous month');
+      }
+    } catch (error) {
+      console.error('Error copying from previous month:', error);
+      toast.error('Failed to copy from previous month');
+    }
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+    setInitialized(false); // Reset to reload data for new month
   };
 
   const isLoading = dataLoading || budgetsLoading;
@@ -98,14 +151,51 @@ export const Budget = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Budget Tracker</h1>
-          <p className="text-gray-600">{format(currentMonth, 'MMMM yyyy')}</p>
+        <div className="flex items-center space-x-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Budget Tracker</h1>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateMonth('prev')}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <p className="text-gray-600 font-medium">{format(currentDate, 'MMMM yyyy')}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateMonth('next')}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Quick Set Budget
-        </Button>
+        
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={handleCopyFromPreviousMonth}
+            className="flex items-center space-x-2"
+          >
+            <Copy className="h-4 w-4" />
+            <span>Copy Previous</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsRecurringModalOpen(true)}
+            className="flex items-center space-x-2"
+          >
+            <Repeat className="h-4 w-4" />
+            <span>Recurring Templates</span>
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Quick Set Budget  
+          </Button>
+        </div>
       </div>
 
       <BudgetOverview
@@ -142,6 +232,16 @@ export const Budget = () => {
         categories={categories}
         budgets={budgets}
         setBudgets={setBudgets}
+      />
+
+      <RecurringBudgetModal
+        isOpen={isRecurringModalOpen}
+        onClose={() => setIsRecurringModalOpen(false)}
+        categories={categories}
+        currentBudgets={budgets}
+        setBudgets={setBudgets}
+        currentMonth={currentDate.getMonth() + 1}
+        currentYear={currentDate.getFullYear()}
       />
     </div>
   );

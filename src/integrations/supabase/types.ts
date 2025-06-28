@@ -75,6 +75,81 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_budgets: {
+        Row: {
+          amount: number
+          category_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recurring_payments: {
+        Row: {
+          amount: number
+          category_name: string
+          created_at: string
+          description: string | null
+          end_date: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          next_payment_date: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category_name: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          frequency: string
+          id?: string
+          is_active?: boolean
+          next_payment_date: string
+          start_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_name?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          next_payment_date?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -152,6 +227,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_monthly_budgets: {
+        Args: { p_user_id: string; p_month: number; p_year: number }
+        Returns: undefined
+      }
       log_event: {
         Args: {
           p_event_type: string

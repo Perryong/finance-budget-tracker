@@ -3,18 +3,21 @@
 export { useTransactionStore } from './transactionStore';
 export { useCategoryStore } from './categoryStore';
 export { useBudgetStore } from './budgetStore';
+export { useRecurringBudgetStore } from './recurringBudgetStore';
 export { useUserSettingsStore } from './userSettingsStore';
 
 // Create a combined hook for components that need access to multiple stores
 import { useTransactionStore } from './transactionStore';
 import { useCategoryStore } from './categoryStore';
 import { useBudgetStore } from './budgetStore';
+import { useRecurringBudgetStore } from './recurringBudgetStore';
 import { useUserSettingsStore } from './userSettingsStore';
 
 export const useSupabaseStore = () => {
   const transactionStore = useTransactionStore();
   const categoryStore = useCategoryStore();
   const budgetStore = useBudgetStore();
+  const recurringBudgetStore = useRecurringBudgetStore();
   const userSettingsStore = useUserSettingsStore();
 
   return {
@@ -38,8 +41,15 @@ export const useSupabaseStore = () => {
     setBudget: budgetStore.setBudget,
     setBulkBudgets: budgetStore.setBulkBudgets,
 
+    // Recurring Budget methods
+    recurringBudgets: recurringBudgetStore.recurringBudgets,
+    fetchRecurringBudgets: recurringBudgetStore.fetchRecurringBudgets,
+    setRecurringBudget: recurringBudgetStore.setRecurringBudget,
+    setBulkRecurringBudgets: recurringBudgetStore.setBulkRecurringBudgets,
+    generateMonthlyBudgets: recurringBudgetStore.generateMonthlyBudgets,
+    deleteRecurringBudget: recurringBudgetStore.deleteRecurringBudget,
+
     // User Settings methods
-    theme: userSettingsStore.theme,
     monthlyIncomeTarget: userSettingsStore.monthlyIncomeTarget,
     emergencyFundGoal: userSettingsStore.emergencyFundGoal,
     savingAmount: userSettingsStore.savingAmount,
@@ -49,10 +59,10 @@ export const useSupabaseStore = () => {
     setEmergencyFundGoal: userSettingsStore.setEmergencyFundGoal,
     setSavingAmount: userSettingsStore.setSavingAmount,
     setCurrentSavings: userSettingsStore.setCurrentSavings,
-    toggleTheme: userSettingsStore.toggleTheme,
 
     // Combined loading and error states
-    loading: transactionStore.loading || categoryStore.loading || userSettingsStore.loading,
-    error: transactionStore.error || categoryStore.error || budgetStore.error || userSettingsStore.error,
+    loading: transactionStore.loading || categoryStore.loading || budgetStore.loading || recurringBudgetStore.loading || userSettingsStore.loading,
+    error: transactionStore.error || categoryStore.error || budgetStore.error || recurringBudgetStore.error || userSettingsStore.error,
+    initialized: userSettingsStore.initialized,
   };
 };
