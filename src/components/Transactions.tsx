@@ -58,12 +58,14 @@ export const Transactions = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div>
         <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-        <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Transaction
-        </Button>
+        <div className="mt-4">
+          <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Transaction
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -82,7 +84,7 @@ export const Transactions = () => {
             return (
               <Card key={date}>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex justify-between items-center">
+                  <CardTitle className="flex flex-col space-y-2">
                     <span>{format(parseISO(date), 'EEE, MMMM d, yyyy')}</span>
                     <span className={`font-bold ${dayTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       ${Math.abs(dayTotal).toFixed(2)}
@@ -94,29 +96,28 @@ export const Transactions = () => {
                     {dayTransactions.map((transaction) => (
                       <div
                         key={transaction.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                       >
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: getCategoryColor(transaction.category) }}
-                          />
-                          <div>
-                            <p className="font-medium">{transaction.category}</p>
-                            {transaction.notes && (
-                              <p className="text-sm text-gray-600">{transaction.notes}</p>
-                            )}
-                          </div>
+                        <div
+                          className="w-4 h-4 rounded-full mt-0.5 flex-shrink-0"
+                          style={{ backgroundColor: getCategoryColor(transaction.category) }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium">{transaction.category}</p>
+                          {transaction.notes && (
+                            <p className="text-sm text-gray-600 break-words">{transaction.notes}</p>
+                          )}
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <span className={`font-bold ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className={`font-bold text-sm sm:text-base ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {transaction.amount >= 0 ? '+' : ''}${transaction.amount.toFixed(2)}
                           </span>
-                          <div className="flex space-x-1">
+                          <div className="flex gap-1">
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => handleEdit(transaction)}
+                              className="h-8 w-8 p-0"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -124,6 +125,7 @@ export const Transactions = () => {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleDelete(transaction.id)}
+                              className="h-8 w-8 p-0"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
