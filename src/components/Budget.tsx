@@ -8,7 +8,7 @@ import { EnhancedBudgetCategories } from '@/components/budget/EnhancedBudgetCate
 import { BudgetChart } from '@/components/budget/BudgetChart';
 import { BudgetInsights } from '@/components/budget/BudgetInsights';
 import { BudgetModal } from '@/components/budget/BudgetModal';
-import { RecurringBudgetModal } from './budget/RecurringBudgetModal';
+import { RecurringBudgetModal } from '@/components/budget/RecurringBudgetModal';
 import { budgetService } from '@/services/budgetService';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Plus, Repeat, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -151,7 +151,7 @@ export const Budget = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div>
         <div className="flex items-center space-x-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Budget Tracker</h1>
@@ -175,7 +175,7 @@ export const Budget = () => {
           </div>
         </div>
         
-        <div className="flex space-x-2">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 mt-4">
           <Button 
             variant="outline" 
             onClick={handleCopyFromPreviousMonth}
