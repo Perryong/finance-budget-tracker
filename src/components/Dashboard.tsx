@@ -17,10 +17,31 @@ export const Dashboard = () => {
     currentSavings,
     setSavingAmount,
     setCurrentSavings,
-    loading,
-    initialized
+    fetchUserSettings,
+    loading 
   } = useSupabaseStore();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [settingsInitialized, setSettingsInitialized] = React.useState(false);
+  
+  // Fetch user settings when main data is loaded
+  React.useEffect(() => {
+    const loadUserSettings = async () => {
+      if (loading || settingsInitialized) return;
+      
+      try {
+        console.log('Dashboard: Loading user settings...');
+        await fetchUserSettings();
+        setSettingsInitialized(true);
+        console.log('Dashboard: User settings loaded successfully');
+      } catch (error) {
+        console.error('Dashboard: Error loading user settings:', error);
+      }
+    };
+
+    if (!loading && transactions.length >= 0 && categories.length >= 0) {
+      loadUserSettings();
+    }
+  }, [loading, transactions, categories, fetchUserSettings, settingsInitialized]);
   
   const currentMonth = new Date();
   const monthStart = startOfMonth(currentMonth);
@@ -63,7 +84,7 @@ export const Dashboard = () => {
     await setCurrentSavings(value);
   };
 
-  if (loading || !initialized) {
+  if (loading || !settingsInitialized) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg">Loading dashboard...</div>
@@ -73,22 +94,22 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">{format(currentMonth, 'MMMM yyyy')}</p>
-        <div className="mt-4">
-          <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-6 w-6 mr-2" />
-            Add Transaction
-          </Button>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">{format(currentMonth, 'MMMM yyyy')}</p>
         </div>
+        <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Transaction
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Monthly Income</CardTitle>
-            <TrendingUp className="h-6 w-6 text-green-600" />
+            <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
@@ -100,7 +121,7 @@ export const Dashboard = () => {
         <Card className="border-l-4 border-l-red-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Monthly Expenses</CardTitle>
-            <TrendingDown className="h-6 w-6 text-red-600" />
+            <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
@@ -112,7 +133,7 @@ export const Dashboard = () => {
         <Card className={`border-l-4 ${netBalance >= 0 ? 'border-l-blue-500' : 'border-l-orange-500'}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Monthly Net Balance</CardTitle>
-            <DollarSign className={`h-6 w-6 ${netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
+            <DollarSign className={`h-4 w-4 ${netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
@@ -124,7 +145,7 @@ export const Dashboard = () => {
         <Card className="border-l-4 border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Monthly Savings</CardTitle>
-            <PiggyBank className="h-6 w-6 text-purple-600" />
+            <PiggyBank className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -143,7 +164,7 @@ export const Dashboard = () => {
         <Card className="border-l-4 border-l-teal-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Current Savings</CardTitle>
-            <Wallet className="h-6 w-6 text-teal-600" />
+            <Wallet className="h-4 w-4 text-teal-600" />
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -160,7 +181,7 @@ export const Dashboard = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Monthly Expenses by Category</CardTitle>
@@ -170,11 +191,11 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden">
+        <Card>
           <CardHeader>
             <CardTitle>Transaction Calendar</CardTitle>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6">
+          <CardContent>
             <TransactionCalendar transactions={currentMonthTransactions} />
           </CardContent>
         </Card>
@@ -187,5 +208,3 @@ export const Dashboard = () => {
     </div>
   );
 };
-
-export default Dashboard;
