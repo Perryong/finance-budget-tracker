@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,25 +10,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Edit, Trash2, Check, X, ChevronDown, ChevronUp, RefreshCw, ChevronRight, Folder, FolderOpen } from 'lucide-react';
-import { useCategoryStore } from '@/store/categoryStore';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Trash2, Edit3, Check, X, ChevronDown, Palette } from 'lucide-react';
+import { useSupabaseStore } from '@/store/supabaseStore';
 
 export const CategoryList = () => {
-  const { categories, updateCategory, deleteCategory, loading, refreshCategories } = useCategoryStore();
+  const { categories, updateCategory, deleteCategory } = useSupabaseStore();
   const [editingCategory, setEditingCategory] = React.useState<string | null>(null);
   const [editForm, setEditForm] = React.useState({ name: '', color: '', type: 'expense' as 'income' | 'expense' });
-  const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(new Set()); // Start with all collapsed
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(false); // Changed default to false
 
-  const handleDeleteCategory = async (id: string, categoryName: string) => {
-    if (confirm(`Are you sure you want to delete "${categoryName}"? This will not delete existing transactions.`)) {
-      await deleteCategory(id);
-    }
-  };
+  // Reset collapsed state when component mounts (when user switches to settings tab)
+  React.useEffect(() => {
+    setIsOpen(false);
+  }, []);
 
-  const startEdit = (category: any) => {
-    setEditingCategory(category.id);
+  const handleEdit = (category: any) => {
+    setEditingCategory(category.name);
     setEditForm({
       name: category.name,
       color: category.color,
@@ -35,420 +34,160 @@ export const CategoryList = () => {
     });
   };
 
-  const saveEdit = async () => {
-    if (editingCategory) {
+  const handleSaveEdit = async () => {
+    if (editingCategory && editForm.name.trim()) {
       await updateCategory(editingCategory, editForm);
       setEditingCategory(null);
     }
   };
 
-  const cancelEdit = () => {
+  const handleCancelEdit = () => {
     setEditingCategory(null);
     setEditForm({ name: '', color: '', type: 'expense' });
   };
 
-  const toggleGroup = (groupKey: string) => {
-    const newExpanded = new Set(expandedGroups);
-    if (newExpanded.has(groupKey)) {
-      newExpanded.delete(groupKey);
-    } else {
-      newExpanded.add(groupKey);
-    }
-    setExpandedGroups(newExpanded);
-  };
-
-  const expandAll = () => {
-    setExpandedGroups(new Set(Object.keys({...expenseGroups, ...incomeGroups})));
-  };
-
-  const collapseAll = () => {
-    setExpandedGroups(new Set());
-  };
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await refreshCategories();
-    } finally {
-      setIsRefreshing(false);
+  const handleDelete = async (categoryName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${categoryName}"?`)) {
+      await deleteCategory(categoryName);
     }
   };
 
-  // Enhanced category grouping
-  const expenseGroups = {
-    housing: {
-      title: 'Housing & Utilities',
-      keywords: ['rent', 'mortgage', 'property', 'home', 'utilities', 'internet', 'cable'],
-      color: 'bg-red-600',
-      icon: '🏠'
-    },
-    transportation: {
-      title: 'Transportation',
-      keywords: ['fuel', 'gas', 'transport', 'car', 'parking', 'uber', 'taxi', 'public'],
-      color: 'bg-green-600',
-      icon: '🚗'
-    },
-    food: {
-      title: 'Food & Dining',
-      keywords: ['groceries', 'restaurant', 'food', 'coffee', 'alcohol', 'delivery', 'fast food'],
-      color: 'bg-orange-600',
-      icon: '🍽️'
-    },
-    health: {
-      title: 'Health & Fitness',
-      keywords: ['healthcare', 'health', 'medical', 'dental', 'vision', 'gym', 'fitness', 'personal care', 'medications'],
-      color: 'bg-cyan-600',
-      icon: '🏥'
-    },
-    subscriptions: {
-      title: 'Subscriptions & Digital',
-      keywords: ['subscription', 'streaming', 'software', 'app', 'music', 'cloud', 'gaming'],
-      color: 'bg-blue-600',
-      icon: '📱'
-    },
-    shopping: {
-      title: 'Shopping & Personal',
-      keywords: ['clothing', 'electronics', 'books', 'hobbies', 'gifts', 'beauty', 'cosmetics'],
-      color: 'bg-purple-600',
-      icon: '🛍️'
-    },
-    financial: {
-      title: 'Financial & Fees',
-      keywords: ['bank', 'investment', 'credit', 'atm', 'late', 'loan', 'fees'],
-      color: 'bg-indigo-600',
-      icon: '💳'
-    },
-    family: {
-      title: 'Family & Children',
-      keywords: ['childcare', 'school', 'education', 'baby', 'kids', 'tutoring', 'supplies'],
-      color: 'bg-pink-600',
-      icon: '👨‍👩‍👧‍👦'
-    },
-    entertainment: {
-      title: 'Entertainment & Lifestyle',
-      keywords: ['movies', 'events', 'concerts', 'sports', 'bars', 'nightlife', 'gaming', 'magazines'],
-      color: 'bg-rose-600',
-      icon: '🎭'
-    },
-    travel: {
-      title: 'Travel & Vacation',
-      keywords: ['vacation', 'hotels', 'lodging', 'flights', 'travel', 'rental', 'insurance'],
-      color: 'bg-emerald-600',
-      icon: '✈️'
-    },
-    pets: {
-      title: 'Pets',
-      keywords: ['pet', 'vet', 'grooming'],
-      color: 'bg-amber-600',
-      icon: '🐕'
-    },
-    taxes: {
-      title: 'Taxes & Government',
-      keywords: ['tax', 'government', 'vehicle registration', 'licenses'],
-      color: 'bg-stone-600',
-      icon: '🏛️'
-    },
-    savings: {
-      title: 'Savings & Investments',
-      keywords: ['emergency fund', 'retirement', 'investment contributions', 'savings goals'],
-      color: 'bg-emerald-700',
-      icon: '💰'
-    },
-    business: {
-      title: 'Business & Professional',
-      keywords: ['office', 'professional', 'business', 'marketing', 'services', 'development'],
-      color: 'bg-slate-600',
-      icon: '💼'
-    },
-    other: {
-      title: 'Other & Miscellaneous',
-      keywords: ['miscellaneous', 'other', 'cash', 'returns', 'refunds'],
-      color: 'bg-gray-600',
-      icon: '📦'
-    }
-  };
-
-  const incomeGroups = {
-    regular: {
-      title: 'Regular Income',
-      keywords: ['salary', 'wages', 'overtime', 'tips', 'commission', 'hourly'],
-      color: 'bg-green-600',
-      icon: '💵'
-    },
-    side: {
-      title: 'Side Income',
-      keywords: ['freelance', 'consulting', 'side hustle', 'gig', 'part-time'],
-      color: 'bg-lime-600',
-      icon: '🏃‍♂️'
-    },
-    investment: {
-      title: 'Investment Income',
-      keywords: ['dividends', 'interest', 'capital gains', 'rental', 'returns'],
-      color: 'bg-blue-600',
-      icon: '📈'
-    },
-    bonus: {
-      title: 'Bonus & Rewards',
-      keywords: ['bonus', 'tax refund', 'cash back', 'rewards', 'rebates'],
-      color: 'bg-yellow-600',
-      icon: '🎁'
-    },
-    benefits: {
-      title: 'Government & Benefits',
-      keywords: ['unemployment', 'social security', 'disability', 'child support', 'benefits'],
-      color: 'bg-teal-600',
-      icon: '🏛️'
-    },
-    other: {
-      title: 'Other Income',
-      keywords: ['gifts received', 'inheritance', 'insurance', 'settlements', 'winnings', 'other income'],
-      color: 'bg-purple-600',
-      icon: '🎯'
-    }
-  };
-
-  const categorizeItems = (items: any[], groups: any) => {
-    const categorized: { [key: string]: any[] } = {};
-    const ungrouped: any[] = [];
-
-    // Initialize groups
-    Object.keys(groups).forEach(key => {
-      categorized[key] = [];
-    });
-
-    items.forEach(item => {
-      let assigned = false;
-      for (const [groupKey, group] of Object.entries(groups) as [string, any][]) {
-        if (group.keywords.some((keyword: string) => 
-          item.name.toLowerCase().includes(keyword.toLowerCase())
-        )) {
-          categorized[groupKey].push(item);
-          assigned = true;
-          break;
-        }
-      }
-      if (!assigned) {
-        ungrouped.push(item);
-      }
-    });
-
-    // Add ungrouped items to "other" category
-    if (ungrouped.length > 0 && categorized.other) {
-      categorized.other.push(...ungrouped);
-    }
-
-    return categorized;
-  };
-
-  const expenseCategories = categories.filter(cat => cat.type === 'expense');
   const incomeCategories = categories.filter(cat => cat.type === 'income');
+  const expenseCategories = categories.filter(cat => cat.type === 'expense');
 
-  const categorizedExpenses = categorizeItems(expenseCategories, expenseGroups);
-  const categorizedIncomes = categorizeItems(incomeCategories, incomeGroups);
+  // Enhanced color palette
+  const colorPalettes = {
+    expense: ['#ef4444', '#dc2626', '#b91c1c', '#f97316', '#ea580c', '#d97706', '#8b5cf6', '#7c3aed', '#6d28d9', '#3b82f6', '#2563eb', '#1d4ed8', '#6b7280', '#4b5563', '#374151'],
+    income: ['#22c55e', '#16a34a', '#15803d', '#84cc16', '#65a30d', '#4d7c0f', '#06b6d4', '#0891b2', '#0e7490', '#eab308', '#f59e0b', '#d97706', '#14b8a6', '#0d9488', '#0f766e']
+  };
 
-  const renderCategoryItem = (category: any) => (
-    <div
-      key={category.id}
-      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-    >
-      {editingCategory === category.id ? (
-        <div className="flex items-center space-x-3 flex-1">
-          <div
-            className="w-6 h-6 rounded-full border-2 border-gray-300"
-            style={{ backgroundColor: editForm.color }}
+  const renderCategoryItem = (category: any) => {
+    const isEditing = editingCategory === category.name;
+
+    if (isEditing) {
+      return (
+        <div key={category.name} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-3 bg-blue-50 rounded-lg">
+          <Input
+            value={editForm.name}
+            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+            className="font-medium"
           />
-          <div className="flex-1 grid grid-cols-3 gap-2">
-            <Input
-              value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-              className="text-sm"
-            />
-            <Input
-              type="color"
-              value={editForm.color}
-              onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}
-              className="w-16 h-8"
-            />
-            <Select
-              value={editForm.type}
-              onValueChange={(value: 'income' | 'expense') => 
-                setEditForm({ ...editForm, type: value })
-              }
-            >
-              <SelectTrigger className="text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="income">Income</SelectItem>
-                <SelectItem value="expense">Expense</SelectItem>
-              </SelectContent>
-            </Select>
+          
+          <Select
+            value={editForm.type}
+            onValueChange={(value: 'income' | 'expense') => 
+              setEditForm({ ...editForm, type: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="income">💰 Income</SelectItem>
+              <SelectItem value="expense">💸 Expense</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Input
+                type="color"
+                value={editForm.color}
+                onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}
+                className="w-12 h-8 p-1 rounded"
+              />
+              <div
+                className="w-8 h-8 rounded border-2 border-gray-300"
+                style={{ backgroundColor: editForm.color }}
+              />
+            </div>
+            <div className="grid grid-cols-5 gap-1">
+              {colorPalettes[editForm.type].map(color => (
+                <button
+                  key={color}
+                  className="w-6 h-6 rounded border-2 border-gray-300 hover:scale-110 transition-transform"
+                  style={{ backgroundColor: color }}
+                  onClick={() => setEditForm({ ...editForm, color })}
+                />
+              ))}
+            </div>
           </div>
-          <div className="flex space-x-1">
-            <Button size="sm" variant="ghost" onClick={saveEdit}>
-              <Check className="h-4 w-4 text-green-600" />
+
+          <div className="flex space-x-2">
+            <Button size="sm" onClick={handleSaveEdit} className="bg-green-600 hover:bg-green-700">
+              <Check className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={cancelEdit}>
-              <X className="h-4 w-4 text-red-600" />
+            <Button size="sm" onClick={handleCancelEdit} variant="outline">
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      ) : (
-        <>
-          <div className="flex items-center space-x-3">
-            <div
-              className="w-6 h-6 rounded-full border-2 border-gray-300"
-              style={{ backgroundColor: category.color }}
-            />
-            <div>
-              <p className="font-medium">{category.name}</p>
-              {category.is_system && (
-                <p className="text-xs text-gray-500">System Category</p>
-              )}
-            </div>
-          </div>
-          <div className="flex space-x-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => startEdit(category)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => handleDeleteCategory(category.id, category.name)}
-              disabled={category.is_system}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-
-  const renderCategoryGroup = (groupKey: string, groupData: any, categorizedItems: any[], type: 'income' | 'expense') => {
-    const items = categorizedItems;
-    if (items.length === 0) return null;
-
-    const isExpanded = expandedGroups.has(groupKey);
+      );
+    }
 
     return (
-      <Collapsible key={groupKey} open={isExpanded} onOpenChange={() => toggleGroup(groupKey)}>
-        <CollapsibleTrigger className="w-full">
-          <div className={`flex items-center justify-between p-4 rounded-lg cursor-pointer hover:opacity-90 transition-opacity ${groupData.color} text-white`}>
-            <div className="flex items-center space-x-3">
-              <span className="text-lg">{groupData.icon}</span>
-              <div className="text-left">
-                <h4 className="font-medium text-sm uppercase tracking-wide">
-                  {groupData.title}
-                </h4>
-                <p className="text-xs text-white/80">
-                  {items.length} {items.length === 1 ? 'category' : 'categories'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {isExpanded ? (
-                <FolderOpen className="h-4 w-4" />
-              ) : (
-                <Folder className="h-4 w-4" />
-              )}
-              {isExpanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </div>
+      <div key={category.name} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+        <div className="flex items-center space-x-3">
+          <div
+            className="w-4 h-4 rounded-full border border-gray-300"
+            style={{ backgroundColor: category.color }}
+          />
+          <div>
+            <span className="font-medium">{category.name}</span>
+            <span className="ml-2 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+              {category.type === 'income' ? '💰 Income' : '💸 Expense'}
+            </span>
           </div>
-        </CollapsibleTrigger>
+        </div>
         
-        <CollapsibleContent>
-          <div className="grid gap-2 max-h-96 overflow-y-auto mt-2 ml-4 pr-4">
-            {items.map(renderCategoryItem)}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+        <div className="flex space-x-2">
+          <Button size="sm" variant="outline" onClick={() => handleEdit(category)}>
+            <Edit3 className="h-4 w-4" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => handleDelete(category.name)}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     );
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="font-medium">Category Management</h3>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing || loading}
-            className="flex items-center space-x-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${(isRefreshing || loading) ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={expandAll}
-          >
-            Expand All
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={collapseAll}
-          >
-            Collapse All
-          </Button>
-        </div>
-      </div>
-      
-      {/* Income Categories */}
-      {incomeCategories.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-green-700 border-b pb-2 flex items-center space-x-2">
-            <span>💰</span>
-            <span>Income Categories ({incomeCategories.length})</span>
-          </h3>
-          <div className="space-y-3">
-            {Object.entries(incomeGroups).map(([groupKey, groupData]) =>
-              renderCategoryGroup(groupKey, groupData, categorizedIncomes[groupKey] || [], 'income')
-            )}
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-left font-medium hover:underline">
+        <span>Manage Categories ({categories.length} total)</span>
+        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-6">
+        {incomeCategories.length > 0 && (
+          <div>
+            <h4 className="font-medium text-green-700 mb-3">💰 Income Categories ({incomeCategories.length})</h4>
+            <div className="space-y-2">
+              {incomeCategories.map(renderCategoryItem)}
+            </div>
           </div>
-        </div>
-      )}
-      
-      {/* Expense Categories */}
-      {expenseCategories.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-red-700 border-b pb-2 flex items-center space-x-2">
-            <span>💸</span>
-            <span>Expense Categories ({expenseCategories.length})</span>
-          </h3>
-          <div className="space-y-3">
-            {Object.entries(expenseGroups).map(([groupKey, groupData]) =>
-              renderCategoryGroup(groupKey, groupData, categorizedExpenses[groupKey] || [], 'expense')
-            )}
+        )}
+
+        {expenseCategories.length > 0 && (
+          <div>
+            <h4 className="font-medium text-red-700 mb-3">💸 Expense Categories ({expenseCategories.length})</h4>
+            <div className="space-y-2">
+              {expenseCategories.map(renderCategoryItem)}
+            </div>
           </div>
-        </div>
-      )}
-      
-      {categories.length === 0 && !loading && (
-        <div className="text-center py-8 text-gray-500">
-          <p>No categories found.</p>
-          <p className="text-sm">Click "Load All Categories" above to get started with a comprehensive set of categories.</p>
-        </div>
-      )}
-      
-      {loading && (
-        <div className="text-center py-8 text-gray-500">
-          <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
-          <p>Loading categories...</p>
-        </div>
-      )}
-    </div>
+        )}
+
+        {categories.length === 0 && (
+          <p className="text-gray-500 text-center py-8">
+            No categories found. Add some categories using the form above.
+          </p>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
