@@ -74,12 +74,12 @@ export const Settings = () => {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div>
             <CardTitle className="flex items-center space-x-2">
               <span>Categories</span>
               <span className="text-sm font-normal text-gray-500">({categories.length} total)</span>
             </CardTitle>
-            <div className="flex space-x-2">
+            <div className="mt-4">
               <Button 
                 onClick={handleLoadAllCategories}
                 variant="outline"

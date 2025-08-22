@@ -14,14 +14,10 @@ import { useSupabaseStore } from '@/store/supabaseStore';
 const Index = () => {
   const [activeTab, setActiveTab] = React.useState('dashboard');
   const { user, loading } = useAuth();
-  const { theme, fetchTransactions, fetchCategories, fetchUserSettings } = useSupabaseStore();
+  const { fetchTransactions, fetchCategories, fetchUserSettings, initialized } = useSupabaseStore();
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
-
-  useEffect(() => {
-    if (user) {
+    if (user && !initialized) {
       console.log('User authenticated, fetching data...');
       // Fetch all necessary data when user is authenticated
       const loadData = async () => {
@@ -39,7 +35,7 @@ const Index = () => {
       
       loadData();
     }
-  }, [user, fetchTransactions, fetchCategories, fetchUserSettings]);
+  }, [user, initialized, fetchTransactions, fetchCategories, fetchUserSettings]);
 
   if (loading) {
     return (
@@ -73,9 +69,9 @@ const Index = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className="min-h-screen bg-background">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <main className="container mx-auto px-4 py-8">
+      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {renderContent()}
       </main>
     </div>
