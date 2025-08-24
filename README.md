@@ -84,6 +84,57 @@ A comprehensive personal finance management application built with React, TypeSc
 
    The application will be available at `http://localhost:8080`
 
+## 📱 Building for Mobile (Android & iOS)
+
+This project uses Capacitor to package the web app as native Android and iOS apps.
+
+### Prerequisites
+- Android Studio (SDKs, platform tools) and Java 17
+- Xcode (macOS) with command line tools and CocoaPods
+
+### 1) Build the web app and sync to native
+```bash
+npm run build
+npm run cap:sync
+```
+
+### 2) Android: open and run in Android Studio
+```bash
+npm run android
+```
+- In Android Studio: click Run to install on an emulator/device
+- Release: Build → Generate Signed Bundle / APK (AAB/APK)
+
+### 3) iOS: open and run in Xcode (macOS)
+```bash
+npm run ios
+```
+- In Xcode: set Signing, select a simulator/device, Product → Run
+- Release: Product → Archive, then distribute via Organizer
+
+### App ID, Name, and Icons
+- Update app id/name in `capacitor.config.ts` (`appId`, `appName`) then `npm run cap:sync`
+- Update icons for Android/iOS using Capacitor Assets (recommended):
+  ```bash
+  npm i -D @capacitor/assets
+  # Place your 1024×1024 PNG at resources/icon.png (and optional resources/splash.png)
+  npx @capacitor/assets generate --android --ios
+  npm run cap:sync
+  ```
+  - Use a square 1024×1024 PNG at `resources/icon.png`
+  - Web favicon lives at `public/favicon.ico` (browser/tab icon only)
+
+#### Rebuild Android after changing resources
+```bash
+npx @capacitor/assets generate --android
+npm run build
+npx cap sync android
+npx cap open android
+```
+In Android Studio: Build → Rebuild Project or Build → Generate Signed Bundle / APK.
+
+If changes (icons/name) don’t appear, uninstall the app from the device/emulator and rebuild.
+
 ## 🏗️ Tech Stack
 
 ### Frontend
