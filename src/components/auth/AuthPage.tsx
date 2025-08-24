@@ -9,10 +9,11 @@ import { useToast } from '@/hooks/use-toast';
 
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isResetMode, setIsResetMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,21 +21,38 @@ export const AuthPage = () => {
     setLoading(true);
 
     try {
-      const { error } = isLogin 
-        ? await signIn(email, password)
-        : await signUp(email, password);
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
+      if (isResetMode) {
+        const { error } = await resetPassword(email);
+        if (error) {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Reset link sent!",
+            description: "Please check your email for the password reset link.",
+          });
+          setIsResetMode(false);
+        }
       } else {
-        toast({
-          title: isLogin ? "Welcome back!" : "Account created!",
-          description: isLogin ? "You've been signed in successfully." : "Please check your email to verify your account.",
-        });
+        const { error } = isLogin 
+          ? await signIn(email, password)
+          : await signUp(email, password);
+
+        if (error) {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: isLogin ? "Welcome back!" : "Account created!",
+            description: isLogin ? "You've been signed in successfully." : "Please check your email to verify your account.",
+          });
+        }
       }
     } catch (error) {
       toast({
@@ -52,7 +70,7 @@ export const AuthPage = () => {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
-            {isLogin ? 'Sign In' : 'Sign Up'}
+            {isResetMode ? 'Reset Password' : (isLogin ? 'Sign In' : 'Sign Up')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -68,28 +86,42 @@ export const AuthPage = () => {
                 required
               />
             </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-              />
-            </div>
+            {!isResetMode && (
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
+              {loading ? 'Loading...' : (isResetMode ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Sign Up'))}
             </Button>
           </form>
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center space-y-2">
+            {!isResetMode && isLogin && (
+              <Button
+                variant="link"
+                onClick={() => setIsResetMode(true)}
+                className="text-sm"
+              >
+                Forgot your password?
+              </Button>
+            )}
             <Button
               variant="link"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsResetMode(false);
+                setIsLogin(!isLogin);
+              }}
               className="text-sm"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isResetMode ? 'Back to Sign In' : (isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in")}
             </Button>
           </div>
         </CardContent>
