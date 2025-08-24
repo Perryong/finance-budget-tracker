@@ -66,8 +66,11 @@ export const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="relative min-h-screen">
+      <div className="absolute inset-0 bg-[url('/image.png')] bg-cover bg-center" />
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
             {isResetMode ? 'Reset Password' : (isLogin ? 'Sign In' : 'Sign Up')}
@@ -125,7 +128,8 @@ export const AuthPage = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
